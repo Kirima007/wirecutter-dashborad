@@ -1,0 +1,30 @@
+/* Animation จุดสถานะกระพริบ */
+@keyframes status-pulse {
+    0% { transform: scale(0.95); opacity: 0.8; }
+    50% { transform: scale(1.15); opacity: 1; }
+    100% { transform: scale(0.95); opacity: 0.8; }
+}
+.pulse-active { animation: status-pulse 1.6s infinite ease-in-out; }
+
+/* Blade Animation */
+.blade-transition { transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1); }
+
+/* LED Indicators */
+.led.on {
+    background-color: #10b981 !important;
+    box-shadow: 0 0 6px #10b981;
+}
+.led.blade-on {
+    background-color: #f59e0b !important;
+    box-shadow: 0 0 6px #f59e0b;
+}
+
+/* Invalid SVG Theme */
+.invalid-state {
+    border-color: #fca5a5 !important;
+    background-color: #fef2f2 !important;
+}
+.invalid-state svg rect.svg-jacket { fill: #ef4444 !important; }
+.invalid-state svg rect.svg-copper { fill: #991b1b !important; }
+.invalid-state svg ellipse.svg-copper { fill: #991b1b !important; stroke: #7f1d1d !important; }
+.invalid-state svg line.svg-strand { stroke: #7f1d1d !important; }

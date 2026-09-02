@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WireMaster Control Application</title>
+
+    <!-- Tailwind CSS & Icons -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="./css/base.css">
+    <link rel="stylesheet" href="./css/components.css">
+
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: { DEFAULT: '#1b174c', dark: '#130f30', light: '#282168', hover: '#322975' }
+                    },
+                    fontFamily: { sans: ['Kanit', 'sans-serif'], mono: ['Roboto Mono', 'monospace'] }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="min-h-screen flex flex-col justify-between bg-[#f0f2f7] text-slate-800 select-none">
+
+    <!-- HEADER -->
+    <header class="bg-navy text-white px-5 py-3 shadow-lg flex justify-between items-center sticky top-0 z-40">
+        <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-full bg-white text-navy font-bold text-xl flex items-center justify-center shadow-md">W</div>
+            <h1 class="text-xl font-bold tracking-wide">WireMaster Control</h1>
+        </div>
+        <div class="flex items-center space-x-4">
+            <div id="machineStatusPill" class="flex items-center space-x-2 bg-white text-slate-800 px-3.5 py-1.5 rounded-full text-xs font-semibold shadow-sm border border-white/20">
+                <span class="text-slate-600 font-medium">สถานะเครื่อง:</span>
+                <span id="machineStatusLabel" class="flex items-center space-x-1.5 text-slate-400 font-bold">
+                    <span id="machineStatusDot" class="w-2.5 h-2.5 rounded-full bg-slate-400 inline-block pulse-active"></span>
+                    <span id="machineStatusName">OFFLINE</span>
+                </span>
+            </div>
+            <button id="btnSettingsOpen" title="Settings" class="flex items-center space-x-1.5 bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full text-xs font-medium text-white transition">
+                <i class="fa-solid fa-gear text-sm"></i>
+                <span class="hidden sm:inline">Settings</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN APP -->
+    <main class="max-w-[1750px] w-full mx-auto p-4 md:p-5 grid grid-cols-1 lg:grid-cols-12 gap-5 flex-grow">
+
+        <!-- [LEFT PANEL] Telemetry / Memory / Queue -->
+        <div class="lg:col-span-3 flex flex-col space-y-4">
+            
+            <!-- TELEMETRY PANEL -->
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200/90 space-y-3 relative overflow-hidden">
+            <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+                <div class="flex items-center space-x-2 font-bold text-sm text-slate-800">
+                    <i class="fa-solid fa-microchip text-navy"></i> <span>TELEMETRY</span>
+                </div>
+                <span id="telUptime" class="text-[10px] font-mono text-slate-400">UP: 00:00:00</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                    <span class="text-[10px] text-slate-500 block mb-0.5">TEMPERATURE</span>
+                    <span id="telTemp" class="text-emerald-600 font-mono font-bold text-sm">-- °C</span>
+                </div>
+                <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                    <span class="text-[10px] text-slate-500 block mb-0.5">CYCLE TIME</span>
+                    <span id="telCycle" class="text-amber-500 font-mono font-bold text-sm">-- s</span>
+                </div>
+            </div>
+
+            <div>
+                <div class="flex justify-between items-end mb-1">
+                    <span class="text-[10px] text-slate-500 font-bold">PROGRESS</span>
+                    <span class="font-mono text-xs">
+                        <span id="telDone" class="text-emerald-600 font-bold text-sm">0</span> 
+                        <span class="text-slate-400">/</span> 
+                        <span id="telTarget" class="text-slate-600">0</span>
+                    </span>
+                </div>
+                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200">
+                    <div id="telProgressBar" class="bg-emerald-500 h-full w-0 transition-all duration-300"></div>
+                </div>
+                <div class="flex justify-between mt-1">
+                    <span class="text-[10px] text-slate-500">ETA: <span id="telEta" class="text-slate-600 font-mono font-bold">--:--</span></span>
+                </div>
+            </div>
+
+            <div class="flex space-x-4 pt-2 border-t border-slate-100 mt-2">
+                <div class="flex items-center space-x-1.5 text-[10px] font-bold text-slate-500">
+                    <span id="ledPower" class="led w-2.5 h-2.5 rounded-full bg-slate-300 inline-block border border-slate-400"></span>
+                    <span>PWR</span>
+                </div>
+                <div class="flex items-center space-x-1.5 text-[10px] font-bold text-slate-500">
+                    <span id="ledBlade" class="led w-2.5 h-2.5 rounded-full bg-slate-300 inline-block border border-slate-400"></span>
+                    <span>BLADE</span>
+                </div>
+            </div>
+        </div>
+
+            <!-- MEMORY SLOTS -->
+            <div class="bg-white p-4 rounded-xl border border-slate-200/90 shadow-sm space-y-2.5">
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wide">Memory (ค่าที่ใช้บ่อย)</span>
+                    <button id="btnSaveMem" class="text-[10px] text-navy font-bold hover:underline">
+                        <i class="fa-solid fa-floppy-disk mr-1"></i>จำค่าปัจจุบัน
+                    </button>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <button class="btn-mem py-2 text-xs font-bold rounded-lg border bg-navy text-white border-navy shadow-sm transition" data-slot="1">M1</button>
+                    <button class="btn-mem py-2 text-xs font-bold rounded-lg border bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 transition" data-slot="2">M2</button>
+                    <button class="btn-mem py-2 text-xs font-bold rounded-lg border bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 transition" data-slot="3">M3</button>
+                </div>
+            </div>
+
+            <!-- QUEUE -->
+            <div class="bg-white p-4 rounded-xl border border-slate-200/90 shadow-sm flex-grow flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-3 border-b border-slate-100 pb-2">
+                        <span class="text-xs font-bold text-slate-500">คิวงานปัจจุบัน</span>
+                    </div>
+                    <div id="queueItemsContainer" class="space-y-2 max-h-[190px] overflow-y-auto pr-1 text-xs">
+                        <div class="text-slate-400 text-center py-2">ไม่มีข้อมูลคิวจากเครื่อง</div>
+                    </div>
+                </div>
+                <div class="pt-3 border-t border-slate-100 flex justify-between items-center">
+                    <button id="btnClearQueue" class="text-xs text-slate-400 hover:text-red-500 transition font-bold">
+                        <i class="fa-solid fa-trash-can mr-1"></i> ล้างคิวงาน
+                    </button>
+                    <span id="queueCountBadge" class="text-[10px] text-slate-400 font-mono">0 งาน</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- [CENTER PANEL] Simulation + Logs -->
+        <div class="lg:col-span-6 flex flex-col space-y-4">
+            
+            <!-- WIRE SIMULATION SVG -->
+            <div id="simContainer" class="bg-white p-5 rounded-xl border border-slate-200/90 shadow-sm flex flex-col items-center relative overflow-hidden transition-colors duration-300">
+                <div id="invalidBadge" class="absolute top-4 right-4 bg-red-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg shadow-md hidden z-10 animate-pulse flex items-center space-x-1">
+                    <i class="fa-solid fa-triangle-exclamation"></i> <span>INVALID PARAMETERS</span>
+                </div>
+
+                <h2 class="text-base font-bold text-slate-800 mb-0.5">Wire Master Control (<span id="titleLengthText">100</span> mm)</h2>
+                <p class="text-xs text-slate-400 font-medium mb-3">Simulation</p>
+
+                <div class="w-full h-[230px] bg-slate-50/70 rounded-xl border border-slate-100 flex items-center justify-center relative p-2 overflow-hidden">
+                    <svg id="wireSvg" viewBox="0 0 760 220" class="w-full h-full overflow-visible">
+                        <defs>
+                            <linearGradient id="jacketGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#3d318e" />
+                                <stop offset="30%" stop-color="#292062" />
+                                <stop offset="70%" stop-color="#1b1548" />
+                                <stop offset="100%" stop-color="#120e31" />
+                            </linearGradient>
+                            <linearGradient id="copperGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#f5a358" />
+                                <stop offset="35%" stop-color="#d96b27" />
+                                <stop offset="80%" stop-color="#a6440c" />
+                                <stop offset="100%" stop-color="#732b04" />
+                            </linearGradient>
+                            <radialGradient id="copper3dCap" cx="50%" cy="50%" r="50%" fx="30%" fy="30%">
+                                <stop offset="0%" stop-color="#fbd2a0" />
+                                <stop offset="60%" stop-color="#d96b27" />
+                                <stop offset="100%" stop-color="#6e2803" />
+                            </radialGradient>
+                            <linearGradient id="bladeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#94a3b8" />
+                                <stop offset="50%" stop-color="#f8fafc" />
+                                <stop offset="100%" stop-color="#475569" />
+                            </linearGradient>
+                            <marker id="arrowHead" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" />
+                            </marker>
+                        </defs>
+
+                        <!-- Wire Body -->
+                        <g id="wireMainGroup">
+                            <g id="frontCopperGroup">
+                                <rect id="frontCoreBase" x="120" y="85" width="40" height="30" fill="url(#copperGradient)" rx="2" class="svg-copper" />
+                                <line id="strandF1" x1="120" y1="92" x2="160" y2="92" stroke="#fbd2a0" stroke-width="1" opacity="0.6" class="svg-strand" />
+                                <line id="strandF2" x1="120" y1="100" x2="160" y2="100" stroke="#732b04" stroke-width="1" opacity="0.6" class="svg-strand" />
+                                <line id="strandF3" x1="120" y1="108" x2="160" y2="108" stroke="#fbd2a0" stroke-width="1" opacity="0.6" class="svg-strand" />
+                            </g>
+                            <rect id="middleJacket" x="160" y="70" width="420" height="60" fill="url(#jacketGradient)" rx="10" filter="drop-shadow(0 6px 8px rgba(0,0,0,0.18))" class="svg-jacket" />
+                            <line id="jacketHighlight" x1="165" y1="80" x2="575" y2="80" stroke="#6856d6" stroke-width="2" opacity="0.5" stroke-linecap="round" />
+                            <g id="rearCopperGroup">
+                                <rect id="rearCoreBase" x="580" y="85" width="60" height="30" fill="url(#copperGradient)" rx="2" class="svg-copper" />
+                                <ellipse id="copperEnd3dCap" cx="640" cy="100" rx="6" ry="15" fill="url(#copper3dCap)" stroke="#732b04" stroke-width="0.8" class="svg-copper" />
+                                <line id="strandR1" x1="580" y1="92" x2="640" y2="92" stroke="#fbd2a0" stroke-width="1" opacity="0.6" class="svg-strand" />
+                                <line id="strandR2" x1="580" y1="100" x2="640" y2="100" stroke="#732b04" stroke-width="1" opacity="0.6" class="svg-strand" />
+                                <line id="strandR3" x1="580" y1="108" x2="640" y2="108" stroke="#fbd2a0" stroke-width="1" opacity="0.6" class="svg-strand" />
+                            </g>
+                        </g>
+
+                        <!-- Blades -->
+                        <g id="bladesLeftGroup" class="blade-transition opacity-0">
+                            <path id="bladeLeftTop" d="M 155,5 L 165,5 L 161,65 L 155,65 Z" fill="url(#bladeGrad)" stroke="#334155" stroke-width="1" />
+                            <path id="bladeLeftBottom" d="M 155,215 L 165,215 L 161,135 L 155,135 Z" fill="url(#bladeGrad)" stroke="#334155" stroke-width="1" />
+                        </g>
+                        <g id="bladesRightGroup" class="blade-transition opacity-0">
+                            <path id="bladeRightTop" d="M 575,5 L 585,5 L 581,65 L 575,65 Z" fill="url(#bladeGrad)" stroke="#334155" stroke-width="1" />
+                            <path id="bladeRightBottom" d="M 575,215 L 585,215 L 581,135 L 575,135 Z" fill="url(#bladeGrad)" stroke="#334155" stroke-width="1" />
+                        </g>
+
+                        <!-- Sparks -->
+                        <g id="sparksHolder"></g>
+
+                        <!-- Dimensions -->
+                        <g id="dimTopGroup">
+                            <line id="lineTop1" x1="580" y1="60" x2="580" y2="35" stroke="#94a3b8" stroke-dasharray="2 2" />
+                            <line id="lineTop2" x1="640" y1="60" x2="640" y2="35" stroke="#94a3b8" stroke-dasharray="2 2" />
+                            <line id="arrowTop" x1="580" y1="42" x2="640" y2="42" stroke="#64748b" stroke-width="1.2" marker-start="url(#arrowHead)" marker-end="url(#arrowHead)" />
+                            <text id="txtTopVal" x="610" y="32" text-anchor="middle" font-size="11" font-weight="600" fill="#475569">10 mm</text>
+                        </g>
+                        <g id="dimBottomGroup">
+                            <line id="lineBottom1" x1="120" y1="140" x2="120" y2="175" stroke="#94a3b8" stroke-dasharray="2 2" />
+                            <line id="lineBottom2" x1="640" y1="140" x2="640" y2="175" stroke="#94a3b8" stroke-dasharray="2 2" />
+                            <line id="arrowBottom" x1="120" y1="168" x2="640" y2="168" stroke="#64748b" stroke-width="1.2" marker-start="url(#arrowHead)" marker-end="url(#arrowHead)" />
+                            <text id="txtBottomVal" x="380" y="188" text-anchor="middle" font-size="12" font-weight="700" fill="#334155">100 mm</text>
+                        </g>
+
+                        <!-- Diameter -->
+                        <g id="dimRightGroup">
+                            <line id="lineRight1" x1="645" y1="85" x2="675" y2="85" stroke="#94a3b8" stroke-dasharray="2 2" />
+                            <line id="lineRight2" x1="645" y1="115" x2="675" y2="115" stroke="#94a3b8" stroke-dasharray="2 2" />
+                            <line id="arrowRight" x1="670" y1="85" x2="670" y2="115" stroke="#64748b" stroke-width="1.2" marker-start="url(#arrowHead)" marker-end="url(#arrowHead)" />
+                            <text id="txtRightVal" x="682" y="104" text-anchor="start" font-size="11" font-weight="600" fill="#475569">5.2 mm</text>
+                        </g>
+
+                    </svg>
+                </div>
+            </div>
+
+            <!-- TERMINAL & HISTORY -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                
+                <div class="md:col-span-7 bg-white p-4 rounded-xl border border-slate-200/90 shadow-sm space-y-2 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-bold text-slate-800 text-xs uppercase tracking-wide">Log history</h3>
+                            <button id="btnExportCsv" class="text-[10px] text-indigo-600 font-semibold hover:underline flex items-center space-x-1">
+                                <i class="fa-solid fa-file-csv"></i> <span>Export CSV</span>
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto rounded-lg border border-slate-100 h-[140px] overflow-y-auto">
+                            <table class="w-full text-left border-collapse text-[11px]">
+                                <thead class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200/80 sticky top-0">
+                                    <tr>
+                                        <th class="py-1.5 px-2.5">Date</th>
+                                        <th class="py-1.5 px-2.5">AWG</th>
+                                        <th class="py-1.5 px-2.5">L(mm)</th>
+                                        <th class="py-1.5 px-2.5">Pieces</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historyTableBody" class="divide-y divide-slate-100 font-mono text-slate-700"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="md:col-span-5 bg-[#15171e] text-slate-200 p-3.5 rounded-xl border border-slate-800 flex flex-col justify-between h-[190px] shadow-inner">
+                    <div class="flex justify-between items-center mb-2 pb-1 border-b border-slate-800 text-xs">
+                        <span class="font-bold text-slate-300">Live Console</span>
+                        <div class="flex items-center space-x-2">
+                            <button id="btnClearConsole" class="text-[10px] text-slate-400 hover:text-white transition">Clear</button>
+                            <span class="text-[9px] text-emerald-400 bg-emerald-950 px-1.5 py-0.5 rounded border border-emerald-800 font-mono">LIVE</span>
+                        </div>
+                    </div>
+                    <div id="terminalLogBox" class="terminal-scroll text-[11px] space-y-1 overflow-y-auto flex-grow text-slate-300 leading-relaxed pr-1"></div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- [RIGHT PANEL] Parameters & Buttons -->
+        <div class="lg:col-span-3 flex flex-col space-y-4">
+            
+            <div class="bg-white p-5 rounded-xl border border-slate-200/90 shadow-sm flex flex-col justify-between flex-grow">
+                <div>
+                    <h2 class="font-bold text-slate-800 text-sm mb-3.5 pb-2 border-b border-slate-100 flex items-center justify-between">
+                        <span>ตั้งค่าการตัดสายไฟ</span>
+                        <i class="fa-solid fa-sliders text-navy text-xs"></i>
+                    </h2>
+                    
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">ขนาดสายไฟ (AWG)</label>
+                            <!-- ตัวเลือกถูกสร้างจาก js/awg-data.js ตอนโหลดหน้า -->
+                            <select id="inputAwg" class="w-full px-3 py-2 border border-slate-200 bg-white rounded-lg text-xs font-semibold text-slate-800 outline-none"></select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Total Length (L) — ความยาวรวม</label>
+                            <div class="relative">
+                                <input type="number" id="inputLength" value="100" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs font-bold outline-none pr-10">
+                                <span class="absolute right-3 top-2 text-xs font-semibold text-slate-400">mm</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">ปอกหน้า (mm)</label>
+                                <input type="number" id="inputFront" value="10" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs font-bold outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">ปอกหลัง (mm)</label>
+                                <input type="number" id="inputBack" value="10" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs font-bold outline-none">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">จำนวนที่ต้องการ (pcs)</label>
+                            <input type="number" id="inputQty" value="50" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs font-bold outline-none">
+                        </div>
+
+                        <!-- RECIPE -->
+                        <div class="pt-2 border-t border-slate-100 mt-2">
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Recipe (สูตรสั่งทำ)</label>
+                            <div class="flex space-x-2">
+                                <select id="recipeSelect" class="flex-1 px-3 py-2 border border-slate-200 bg-white rounded-lg text-xs font-medium outline-none">
+                                    <option value="">-- เลือกสูตร --</option>
+                                </select>
+                                <button id="btnLoadRecipe" class="w-10 h-9 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg flex flex-col items-center justify-center transition">
+                                    <i class="fa-solid fa-folder-open text-xs"></i><span class="text-[8px] font-bold mt-0.5">Load</span>
+                                </button>
+                                <button id="btnSaveRecipe" class="w-10 h-9 bg-navy hover:bg-navy-hover text-white rounded-lg flex flex-col items-center justify-center transition">
+                                    <i class="fa-solid fa-floppy-disk text-xs"></i><span class="text-[8px] font-bold mt-0.5">Save</span>
+                                </button>
+                                <button id="btnDelRecipe" class="w-10 h-9 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg flex flex-col items-center justify-center transition">
+                                    <i class="fa-solid fa-trash text-xs"></i><span class="text-[8px] font-bold mt-0.5">Del</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-4 mt-2 space-y-2">
+                    <button id="btnAddJob" class="w-full py-4 bg-navy hover:bg-navy-hover active:bg-navy-dark text-white font-bold text-sm rounded-xl shadow-md transition duration-200 flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-plus"></i> <span>ADD JOB</span>
+                    </button>
+                    <button id="btnStopJob" class="w-full py-3 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold text-sm rounded-xl shadow-md transition duration-200 flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-square"></i> <span>STOP</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- =========================================================
+         MODALS (Settings & Custom Confirm)
+    ========================================================= -->
+    
+    <!-- Settings -->
+    <div id="settingsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-all duration-200">
+        <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl border border-slate-100">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
+                <h3 class="text-sm font-bold text-slate-800 flex items-center space-x-2">
+                    <i class="fa-solid fa-gear text-navy"></i> <span>การตั้งค่า WireMaster</span>
+                </h3>
+                <button id="btnSettingsClose" class="text-slate-400 hover:text-slate-600 text-base"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-3.5 text-xs">
+                <div class="flex items-center justify-between py-2 border-t border-slate-100">
+                    <span class="font-semibold text-slate-700">เสียงเอฟเฟกต์ (Audio Effects)</span>
+                    <input type="checkbox" id="settingSound" checked class="w-4 h-4 accent-navy">
+                </div>
+                <div class="flex items-center justify-between py-2 border-t border-slate-100">
+                    <div>
+                        <span class="font-semibold text-slate-700 block">Demo Mode</span>
+                        <span class="text-[10px] text-slate-500">รันระบบจำลอง (ออฟไลน์) เพื่อพรีเซนต์</span>
+                    </div>
+                    <input type="checkbox" id="settingDemo" class="w-4 h-4 accent-navy">
+                </div>
+            </div>
+            <div class="mt-5 flex justify-end">
+                <button id="btnSettingsSave" class="px-4 py-1.5 bg-navy text-white font-semibold text-xs rounded-lg">ปิด</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Confirm Modal -->
+    <div id="confirmModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center hidden opacity-0 transition-all duration-200">
+        <div class="bg-white rounded-2xl max-w-xs w-full p-5 shadow-2xl text-center border-t-4 border-amber-500">
+            <div class="w-10 h-10 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-3 text-lg">
+                <i class="fa-solid fa-circle-exclamation"></i>
+            </div>
+            <h3 id="confirmTitle" class="text-sm font-bold text-slate-800 mb-1">ยืนยันการทำรายการ</h3>
+            <p id="confirmMsg" class="text-xs text-slate-500 mb-4 whitespace-pre-line">คุณแน่ใจหรือไม่?</p>
+            <div class="flex justify-center space-x-2">
+                <button id="btnConfirmCancel" class="px-4 py-1.5 bg-slate-100 text-slate-700 font-semibold text-xs rounded-lg">ยกเลิก</button>
+                <button id="btnConfirmOk" class="px-4 py-1.5 bg-amber-500 text-white font-semibold text-xs rounded-lg">ตกลง</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ENTRY POINT -->
+    <script type="module" src="./js/main.js"></script>
+</body>
+</html>
