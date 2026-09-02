@@ -5,19 +5,6 @@
 // หมายเหตุ: ถ้าเครื่องรองรับเฉพาะบางขนาด ลบแถวที่ไม่ใช้ออกจาก array นี้ได้เลย
 //           dropdown กับ simulation จะปรับตามอัตโนมัติ
 export const AWG_TABLE = [
-    { id: '0000awg', name: '0000 (4/0)', dia: 11.6840, area: 107.2193, cma: 211600 },
-    { id: '000awg',  name: '000 (3/0)',  dia: 10.4049, area: 85.0288,  cma: 167806 },
-    { id: '00awg',   name: '00 (2/0)',   dia: 9.2658,  area: 67.4309,  cma: 133077 },
-    { id: '0awg',    name: '0 (1/0)',    dia: 8.2515,  area: 53.4751,  cma: 105534 },
-    { id: '1awg',    name: '1',          dia: 7.3481,  area: 42.4077,  cma: 83693 },
-    { id: '2awg',    name: '2',          dia: 6.5437,  area: 33.6308,  cma: 66371 },
-    { id: '3awg',    name: '3',          dia: 5.8273,  area: 26.6705,  cma: 52635 },
-    { id: '4awg',    name: '4',          dia: 5.1894,  area: 21.1506,  cma: 41741 },
-    { id: '5awg',    name: '5',          dia: 4.6213,  area: 16.7732,  cma: 33102 },
-    { id: '6awg',    name: '6',          dia: 4.1154,  area: 13.3018,  cma: 26251 },
-    { id: '7awg',    name: '7',          dia: 3.6649,  area: 10.5488,  cma: 20818 },
-    { id: '8awg',    name: '8',          dia: 3.2636,  area: 8.3656,   cma: 16510 },
-    { id: '9awg',    name: '9',          dia: 2.9064,  area: 6.6342,   cma: 13093 },
     { id: '10awg',   name: '10',         dia: 2.5882,  area: 5.2612,   cma: 10383 },
     { id: '11awg',   name: '11',         dia: 2.3048,  area: 4.1723,   cma: 8234 },
     { id: '12awg',   name: '12',         dia: 2.0525,  area: 3.3088,   cma: 6530 },
@@ -38,17 +25,7 @@ export const AWG_TABLE = [
     { id: '27awg',   name: '27',         dia: 0.3606,  area: 0.1021,   cma: 202 },
     { id: '28awg',   name: '28',         dia: 0.3211,  area: 0.0810,   cma: 160 },
     { id: '29awg',   name: '29',         dia: 0.2859,  area: 0.0642,   cma: 127 },
-    { id: '30awg',   name: '30',         dia: 0.2546,  area: 0.0509,   cma: 101 },
-    { id: '31awg',   name: '31',         dia: 0.2268,  area: 0.0404,   cma: 80 },
-    { id: '32awg',   name: '32',         dia: 0.2019,  area: 0.0320,   cma: 63 },
-    { id: '33awg',   name: '33',         dia: 0.1798,  area: 0.0254,   cma: 50 },
-    { id: '34awg',   name: '34',         dia: 0.1601,  area: 0.0201,   cma: 40 },
-    { id: '35awg',   name: '35',         dia: 0.1426,  area: 0.0160,   cma: 32 },
-    { id: '36awg',   name: '36',         dia: 0.1270,  area: 0.0127,   cma: 25 },
-    { id: '37awg',   name: '37',         dia: 0.1131,  area: 0.0100,   cma: 20 },
-    { id: '38awg',   name: '38',         dia: 0.1007,  area: 0.0080,   cma: 16 },
-    { id: '39awg',   name: '39',         dia: 0.0897,  area: 0.0063,   cma: 12 },
-    { id: '40awg',   name: '40',         dia: 0.0799,  area: 0.0050,   cma: 10 }
+    { id: '30awg',   name: '30',         dia: 0.2546,  area: 0.0509,   cma: 101 }
 ];
 
 const DEFAULT_AWG = AWG_TABLE.find(a => a.id === '22awg');
