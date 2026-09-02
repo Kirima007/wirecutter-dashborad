@@ -17,16 +17,26 @@ export function renderTelemetry() {
     document.getElementById('ledBlade').className = `led w-2.5 h-2.5 rounded-full inline-block border border-slate-900 ${state.ledBlade ? 'blade-on' : ''}`;
     
     updateStatusBadge();
+    updateSimState();
+}
+
+// สถานะเครื่องในแผงจำลอง: ชิปมุมซ้ายบน + ใบมีด + แสงไล่ตอนสายเดิน
+function updateSimState() {
+    const online = state.connected || state.isDemo;
+    const running = online && state.machineState === 'RUNNING';
+
+    const chip = document.getElementById('stateChip');
+    const chipText = document.getElementById('stateChipText');
+    if (chip) chip.classList.toggle('running', running);
+    if (chipText) chipText.textContent = online ? state.machineState : 'OFFLINE';
+
+    const simContainer = document.getElementById('simContainer');
+    if (simContainer) simContainer.classList.toggle('machine-running', running);
 
     const blGroup = document.getElementById('bladesLeftGroup');
     const brGroup = document.getElementById('bladesRightGroup');
-    if (state.machineState === 'RUNNING') {
-        if(blGroup) blGroup.classList.remove('opacity-0');
-        if(brGroup) brGroup.classList.remove('opacity-0');
-    } else {
-        if(blGroup) blGroup.classList.add('opacity-0');
-        if(brGroup) brGroup.classList.add('opacity-0');
-    }
+    if (blGroup) blGroup.classList.toggle('opacity-0', !running);
+    if (brGroup) brGroup.classList.toggle('opacity-0', !running);
 }
 
 function updateStatusBadge() {

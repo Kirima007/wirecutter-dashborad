@@ -145,15 +145,26 @@
             
             <!-- WIRE SIMULATION SVG -->
             <div id="simContainer" class="bg-white p-5 rounded-xl border border-slate-200/90 shadow-sm flex flex-col items-center relative overflow-hidden transition-colors duration-300">
-                <div id="invalidBadge" class="absolute top-4 right-4 bg-red-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg shadow-md hidden z-10 animate-pulse flex items-center space-x-1">
-                    <i class="fa-solid fa-triangle-exclamation"></i> <span>INVALID PARAMETERS</span>
+                <!-- ชิปสถานะเครื่อง (อัปเดตจาก ui-telemetry.js) -->
+                <div id="stateChip" class="state-chip absolute top-4 left-4 z-10 flex items-center space-x-2 px-3 py-1 rounded-full border text-[11px] font-mono font-bold tracking-wider">
+                    <span class="state-chip-dot w-1.5 h-1.5 rounded-full inline-block"></span>
+                    <span id="stateChipText">OFFLINE</span>
+                </div>
+
+                <!-- ป้ายค่าไม่ถูกต้อง พร้อมเหตุผลจริงจาก validation.js -->
+                <div id="invalidBadge" class="absolute top-4 right-4 max-w-[320px] bg-red-600 text-white px-3.5 py-2.5 rounded-xl shadow-lg hidden z-10 flex items-start space-x-2.5 text-left">
+                    <i class="fa-solid fa-triangle-exclamation mt-0.5"></i>
+                    <span>
+                        <span class="block text-[10px] font-bold tracking-widest">ค่าไม่ถูกต้อง</span>
+                        <span id="invalidMsg" class="block text-[12px] font-light leading-snug text-red-100"></span>
+                    </span>
                 </div>
 
                 <h2 class="text-base font-bold text-slate-800 mb-0.5">Wire Master Control (<span id="titleLengthText">100</span> mm)</h2>
                 <p class="text-xs text-slate-400 font-medium mb-3">Simulation</p>
 
-                <div class="w-full h-[230px] bg-slate-50/70 rounded-xl border border-slate-100 flex items-center justify-center relative p-2 overflow-hidden">
-                    <svg id="wireSvg" viewBox="0 0 760 220" class="w-full h-full overflow-visible">
+                <div class="w-full h-[270px] bg-slate-50/70 rounded-xl border border-slate-100 flex items-center justify-center relative p-2 overflow-hidden">
+                    <svg id="wireSvg" viewBox="0 0 820 300" class="w-full h-full overflow-visible">
                         <defs>
                             <linearGradient id="jacketGradient" x1="0%" y1="0%" x2="0%" y2="100%">
                                 <stop offset="0%" stop-color="#3d318e" />
@@ -177,9 +188,17 @@
                                 <stop offset="50%" stop-color="#f8fafc" />
                                 <stop offset="100%" stop-color="#475569" />
                             </linearGradient>
+                            <linearGradient id="feedGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#8b7bea" stop-opacity="0" />
+                                <stop offset="50%" stop-color="#a99bff" stop-opacity="0.55" />
+                                <stop offset="100%" stop-color="#8b7bea" stop-opacity="0" />
+                            </linearGradient>
                             <marker id="arrowHead" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
                                 <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" />
                             </marker>
+                            <clipPath id="jacketClip">
+                                <rect id="jacketClipRect" x="146" y="117" width="448" height="66" />
+                            </clipPath>
                         </defs>
 
                         <!-- Wire Body -->
@@ -191,6 +210,10 @@
                                 <line id="strandF3" x1="120" y1="108" x2="160" y2="108" stroke="#fbd2a0" stroke-width="1" opacity="0.6" class="svg-strand" />
                             </g>
                             <rect id="middleJacket" x="160" y="70" width="420" height="60" fill="url(#jacketGradient)" rx="10" filter="drop-shadow(0 6px 8px rgba(0,0,0,0.18))" class="svg-jacket" />
+                            <!-- แสงไล่บนฉนวน สื่อว่าสายกำลังเดินตอน RUNNING -->
+                            <g clip-path="url(#jacketClip)">
+                                <rect id="feedSheen" x="146" y="117" width="90" height="66" fill="url(#feedGrad)" />
+                            </g>
                             <line id="jacketHighlight" x1="165" y1="80" x2="575" y2="80" stroke="#6856d6" stroke-width="2" opacity="0.5" stroke-linecap="round" />
                             <g id="rearCopperGroup">
                                 <rect id="rearCoreBase" x="580" y="85" width="60" height="30" fill="url(#copperGradient)" rx="2" class="svg-copper" />
@@ -214,26 +237,48 @@
                         <!-- Sparks -->
                         <g id="sparksHolder"></g>
 
-                        <!-- Dimensions -->
+                        <!-- เส้นบอกขนาดด้านบน เรียงลูกโซ่: ปอกหน้า | ฉนวน | ปอกหลัง -->
                         <g id="dimTopGroup">
-                            <line id="lineTop1" x1="580" y1="60" x2="580" y2="35" stroke="#94a3b8" stroke-dasharray="2 2" />
-                            <line id="lineTop2" x1="640" y1="60" x2="640" y2="35" stroke="#94a3b8" stroke-dasharray="2 2" />
-                            <line id="arrowTop" x1="580" y1="42" x2="640" y2="42" stroke="#64748b" stroke-width="1.2" marker-start="url(#arrowHead)" marker-end="url(#arrowHead)" />
-                            <text id="txtTopVal" x="610" y="32" text-anchor="middle" font-size="11" font-weight="600" fill="#475569">10 mm</text>
-                        </g>
-                        <g id="dimBottomGroup">
-                            <line id="lineBottom1" x1="120" y1="140" x2="120" y2="175" stroke="#94a3b8" stroke-dasharray="2 2" />
-                            <line id="lineBottom2" x1="640" y1="140" x2="640" y2="175" stroke="#94a3b8" stroke-dasharray="2 2" />
-                            <line id="arrowBottom" x1="120" y1="168" x2="640" y2="168" stroke="#64748b" stroke-width="1.2" marker-start="url(#arrowHead)" marker-end="url(#arrowHead)" />
-                            <text id="txtBottomVal" x="380" y="188" text-anchor="middle" font-size="12" font-weight="700" fill="#334155">100 mm</text>
+                            <line id="lineFront1" x1="90" y1="90" x2="90" y2="52" stroke="#94a3b8" stroke-dasharray="2 2" />
+                            <line id="lineFront2" x1="146" y1="90" x2="146" y2="52" stroke="#94a3b8" stroke-dasharray="2 2" />
+                            <line id="lineBack1" x1="594" y1="90" x2="594" y2="52" stroke="#94a3b8" stroke-dasharray="2 2" />
+                            <line id="lineBack2" x1="650" y1="90" x2="650" y2="52" stroke="#94a3b8" stroke-dasharray="2 2" />
+
+                            <line id="arrowFront" x1="90" y1="58" x2="146" y2="58" stroke="#d97706" stroke-width="1.3" marker-start="url(#arrowHead)" marker-end="url(#arrowHead)" />
+                            <line id="arrowJacket" x1="146" y1="58" x2="594" y2="58" stroke="#64748b" stroke-width="1.3" marker-start="url(#arrowHead)" marker-end="url(#arrowHead)" />
+                            <line id="arrowBack" x1="594" y1="58" x2="650" y2="58" stroke="#d97706" stroke-width="1.3" marker-start="url(#arrowHead)" marker-end="url(#arrowHead)" />
+
+                            <text id="txtFrontName" x="118" y="34" text-anchor="middle" font-size="10" font-weight="500" fill="#b45309">ปอกหน้า</text>
+                            <text id="txtFrontVal" x="118" y="48" text-anchor="middle" font-size="11.5" font-weight="700" fill="#92400e" font-family="'Roboto Mono', monospace">10 mm</text>
+                            <text id="txtJacketName" x="370" y="34" text-anchor="middle" font-size="10" font-weight="500" fill="#64748b">ฉนวน</text>
+                            <text id="txtJacketVal" x="370" y="48" text-anchor="middle" font-size="11.5" font-weight="700" fill="#334155" font-family="'Roboto Mono', monospace">80 mm</text>
+                            <text id="txtBackName" x="622" y="34" text-anchor="middle" font-size="10" font-weight="500" fill="#b45309">ปอกหลัง</text>
+                            <text id="txtBackVal" x="622" y="48" text-anchor="middle" font-size="11.5" font-weight="700" fill="#92400e" font-family="'Roboto Mono', monospace">10 mm</text>
                         </g>
 
-                        <!-- Diameter -->
+                        <!-- ความยาวรวมด้านล่าง -->
+                        <g id="dimBottomGroup">
+                            <line id="lineBottom1" x1="90" y1="210" x2="90" y2="252" stroke="#94a3b8" stroke-dasharray="2 2" />
+                            <line id="lineBottom2" x1="650" y1="210" x2="650" y2="252" stroke="#94a3b8" stroke-dasharray="2 2" />
+                            <line id="arrowBottom" x1="90" y1="246" x2="650" y2="246" stroke="#334155" stroke-width="1.4" marker-start="url(#arrowHead)" marker-end="url(#arrowHead)" />
+                            <text id="txtBottomVal" x="370" y="268" text-anchor="middle" font-size="13" font-weight="700" fill="#1e293b" font-family="'Roboto Mono', monospace">100 mm</text>
+                            <text id="txtBottomName" x="370" y="283" text-anchor="middle" font-size="10" font-weight="500" fill="#64748b">ความยาวรวม</text>
+                        </g>
+
+                        <!-- เส้นผ่านศูนย์กลางตัวนำ -->
                         <g id="dimRightGroup">
-                            <line id="lineRight1" x1="645" y1="85" x2="675" y2="85" stroke="#94a3b8" stroke-dasharray="2 2" />
-                            <line id="lineRight2" x1="645" y1="115" x2="675" y2="115" stroke="#94a3b8" stroke-dasharray="2 2" />
-                            <line id="arrowRight" x1="670" y1="85" x2="670" y2="115" stroke="#64748b" stroke-width="1.2" marker-start="url(#arrowHead)" marker-end="url(#arrowHead)" />
-                            <text id="txtRightVal" x="682" y="104" text-anchor="start" font-size="11" font-weight="600" fill="#475569">5.2 mm</text>
+                            <line id="lineRight1" x1="660" y1="132" x2="694" y2="132" stroke="#94a3b8" stroke-dasharray="2 2" />
+                            <line id="lineRight2" x1="660" y1="168" x2="694" y2="168" stroke="#94a3b8" stroke-dasharray="2 2" />
+                            <line id="arrowRight" x1="688" y1="132" x2="688" y2="168" stroke="#64748b" stroke-width="1.2" marker-start="url(#arrowHead)" marker-end="url(#arrowHead)" />
+                            <text id="txtRightVal" x="700" y="154" text-anchor="start" font-size="11" font-weight="600" fill="#475569" font-family="'Roboto Mono', monospace">Ø 0.644</text>
+                        </g>
+
+                        <!-- หน้าตัดสายไฟตามสัดส่วนจริง -->
+                        <g id="xsecGroup">
+                            <circle id="xsecOuter" class="svg-jacket" cx="752" cy="62" r="33" fill="url(#jacketGradient)" stroke="#0f0b2c" stroke-width="1" />
+                            <circle id="xsecInner" class="svg-copper" cx="752" cy="62" r="18" fill="url(#copper3dCap)" stroke="#732b04" stroke-width="0.8" />
+                            <text x="752" y="112" text-anchor="middle" font-size="10" font-weight="500" fill="#64748b">หน้าตัด</text>
+                            <text id="xsecLabel" x="752" y="125" text-anchor="middle" font-size="10" font-weight="700" fill="#334155" font-family="'Roboto Mono', monospace">22 AWG</text>
                         </g>
 
                     </svg>
@@ -347,9 +392,21 @@
                     <button id="btnAddJob" class="w-full py-4 bg-navy hover:bg-navy-hover active:bg-navy-dark text-white font-bold text-sm rounded-xl shadow-md transition duration-200 flex items-center justify-center space-x-2">
                         <i class="fa-solid fa-plus"></i> <span>ADD JOB</span>
                     </button>
-                    <button id="btnStopJob" class="w-full py-3 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold text-sm rounded-xl shadow-md transition duration-200 flex items-center justify-center space-x-2">
-                        <i class="fa-solid fa-square"></i> <span>STOP</span>
-                    </button>
+                    <!-- โซนหยุดเครื่อง แยกออกจากปุ่มปกติ ต้องกดค้างเพื่อยืนยัน -->
+                    <div class="pt-3 mt-3 border-t-2 border-dashed border-slate-200 space-y-2">
+                        <div class="flex items-center justify-between text-[10px] tracking-wide text-slate-400">
+                            <span>โซนหยุดเครื่อง</span>
+                            <span class="text-red-600 font-semibold">กดค้าง 1 วินาที</span>
+                        </div>
+                        <button id="btnStopJob" class="btn-hold relative w-full py-5 overflow-hidden bg-red-600 text-white rounded-xl select-none">
+                            <span id="stopHoldFill" class="absolute inset-0 w-0 bg-red-900"></span>
+                            <span class="relative flex items-center justify-center space-x-2 font-bold text-lg tracking-wide">
+                                <i class="fa-solid fa-square"></i> <span>STOP</span>
+                            </span>
+                            <span class="relative block mt-0.5 text-[11px] font-light text-red-200">กดค้างจนครบเพื่อยืนยัน</span>
+                        </button>
+                        <p id="stopHoldNote" class="text-[11px] text-center text-slate-500 min-h-[16px]"></p>
+                    </div>
                 </div>
             </div>
         </div>

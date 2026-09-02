@@ -19,12 +19,59 @@
     box-shadow: 0 0 6px #f59e0b;
 }
 
+/* ชิปสถานะเครื่องในแผงจำลอง */
+.state-chip {
+    background-color: #f1f5f9;
+    border-color: #e2e8f0;
+    color: #64748b;
+    transition: background-color .25s, border-color .25s, color .25s;
+}
+.state-chip .state-chip-dot { background-color: #94a3b8; }
+.state-chip.running {
+    background-color: #ecfdf5;
+    border-color: #a7f3d0;
+    color: #047857;
+}
+.state-chip.running .state-chip-dot {
+    background-color: #10b981;
+    animation: status-pulse 1.4s infinite ease-in-out;
+}
+
+/* แสงไล่บนฉนวน — เดินเฉพาะตอนเครื่องทำงาน */
+#feedSheen { opacity: 0; }
+.machine-running #feedSheen {
+    opacity: 1;
+    animation: wire-feed 1.6s linear infinite;
+}
+@keyframes wire-feed {
+    from { transform: translateX(-140px); }
+    to   { transform: translateX(620px); }
+}
+
+/* ปุ่ม STOP แบบกดค้างยืนยัน */
+.btn-hold {
+    border-bottom: 4px solid #991b1b;
+    transition: transform .08s, background-color .15s;
+}
+.btn-hold:hover { background-color: #b91c1c; }
+.btn-hold.holding {
+    transform: translateY(2px);
+    border-bottom-width: 2px;
+}
+.btn-hold #stopHoldFill { transition: width .08s linear; }
+.btn-hold:disabled { opacity: .5; cursor: not-allowed; }
+
+@media (prefers-reduced-motion: reduce) {
+    .machine-running #feedSheen { animation: none; }
+    .state-chip.running .state-chip-dot { animation: none; }
+}
+
 /* Invalid SVG Theme */
 .invalid-state {
     border-color: #fca5a5 !important;
     background-color: #fef2f2 !important;
 }
-.invalid-state svg rect.svg-jacket { fill: #ef4444 !important; }
-.invalid-state svg rect.svg-copper { fill: #991b1b !important; }
-.invalid-state svg ellipse.svg-copper { fill: #991b1b !important; stroke: #7f1d1d !important; }
-.invalid-state svg line.svg-strand { stroke: #7f1d1d !important; }
+/* ครอบทุกชนิด element (rect / ellipse / circle) เพราะหน้าตัดใช้ circle */
+.invalid-state svg .svg-jacket { fill: #ef4444 !important; }
+.invalid-state svg .svg-copper { fill: #991b1b !important; stroke: #7f1d1d !important; }
+.invalid-state svg .svg-strand { stroke: #7f1d1d !important; }

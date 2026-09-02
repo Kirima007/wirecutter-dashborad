@@ -10,6 +10,7 @@ import { logTerminal, renderHistoryTable, exportLogCsv } from './ui-log.js';
 import { toggleModal, showToast, showConfirm } from './ui-common.js';
 import { CONFIG } from './config.js';
 import { AWG_TABLE, awgLabel } from './awg-data.js';
+import { initStopButton } from './ui-stop.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     Storage.init();
@@ -56,11 +57,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // STOP BUTTON
-    document.getElementById('btnStopJob').addEventListener('click', () => {
-        sendCommand({ command: "stop" });
-        logTerminal("🛑 สั่งหยุดเครื่อง (STOP)", 'ERROR');
-    });
+    // STOP BUTTON (ต้องกดค้างยืนยัน — ดู ui-stop.js)
+    initStopButton();
 
     // CLEAR QUEUE BUTTON (With Custom Confirm)
     document.getElementById('btnClearQueue').addEventListener('click', () => {

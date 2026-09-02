@@ -2,6 +2,12 @@ import { state } from './state.js';
 import { validateForm } from './validation.js';
 import { getAwg, diameterToPx } from './awg-data.js';
 
+// พิกัดอ้างอิงของ SVG (viewBox 0 0 820 300) — สายไฟวางกลางแนวตั้งที่ y = CY
+const X0 = 90;      // ขอบซ้ายของสายไฟ
+const CY = 150;     // แกนกลางสายไฟ
+const MIN_W = 240;  // ความกว้างขั้นต่ำที่วาด (สายสั้นมากจะได้ยังเห็น)
+const MAX_W = 560;  // ความกว้างสูงสุด (ยาวเกินนี้ภาพไม่ยืดต่อ)
+
 // ฟังก์ชันปลอดภัยสำหรับเปลี่ยน Attribute (ไม่แครชถ้าหา Element ไม่เจอ)
 const setAttr = (id, attrs) => { 
     const el = document.getElementById(id); 
@@ -29,6 +35,7 @@ export function updateWireVisuals() {
     if (!val.valid) {
         if(simContainer) simContainer.classList.add('invalid-state');
         if(badge) badge.classList.remove('hidden');
+        setText('invalidMsg', val.msg);   // บอกให้ชัดว่าผิดกฎข้อไหน ไม่ใช่แค่ INVALID
         if(btnAdd) {
             btnAdd.disabled = true;
             btnAdd.classList.add('opacity-50', 'cursor-not-allowed');
@@ -50,60 +57,82 @@ export function updateWireVisuals() {
     const awg = getAwg(state.awg);
     const coreHeight = diameterToPx(awg.dia);
     const jacketHeight = coreHeight / 0.55;
-    const wireY = 100 - (jacketHeight / 2);
-    const coreY = 100 - (coreHeight / 2);
+    const wireY = CY - (jacketHeight / 2);
+    const coreY = CY - (coreHeight / 2);
 
     const L = state.length, F = state.front, B = state.back;
-    const baseStartX = 120, maxPx = 520;
-    const totalPx = Math.min(Math.max(L * 3.2, 240), maxPx);
+    const totalPx = Math.min(Math.max(L * 3.2, MIN_W), MAX_W);
     const frontPx = (F / L) * totalPx;
     const rearPx = (B / L) * totalPx;
     const jacketPx = totalPx - frontPx - rearPx;
 
-    const fEndX = baseStartX + frontPx;
+    const fEndX = X0 + frontPx;
     const rStartX = fEndX + jacketPx;
     const rEndX = rStartX + rearPx;
 
-    // Elements
-    setAttr('frontCoreBase', { x: baseStartX, y: coreY, width: frontPx, height: coreHeight });
+    // ตัวสายไฟ
+    setAttr('frontCoreBase', { x: X0, y: coreY, width: frontPx, height: coreHeight });
     setAttr('middleJacket', { x: fEndX, y: wireY, width: jacketPx, height: jacketHeight });
-    setAttr('jacketHighlight', { x1: fEndX+5, y1: wireY+8, x2: rStartX-5, y2: wireY+8 });
+    setAttr('jacketClipRect', { x: fEndX, y: wireY, width: jacketPx, height: jacketHeight });
+    setAttr('feedSheen', { y: wireY, height: jacketHeight });
+    setAttr('jacketHighlight', { x1: fEndX+7, y1: wireY+11, x2: rStartX-7, y2: wireY+11 });
     setAttr('rearCoreBase', { x: rStartX, y: coreY, width: rearPx, height: coreHeight });
-    setAttr('copperEnd3dCap', { cx: rEndX, cy: 100, rx: 5, ry: coreHeight/2 });
+    setAttr('copperEnd3dCap', { cx: rEndX, cy: CY, rx: 5, ry: coreHeight/2 });
 
-    // Strands
+    // เส้นลวดฝอยในตัวนำ
     ['strandF1', 'strandF2', 'strandF3'].forEach((id, idx) => {
-        setAttr(id, { x1: baseStartX, x2: fEndX, y1: coreY + (idx+1)*(coreHeight/4), y2: coreY + (idx+1)*(coreHeight/4) });
+        setAttr(id, { x1: X0, x2: fEndX, y1: coreY + (idx+1)*(coreHeight/4), y2: coreY + (idx+1)*(coreHeight/4) });
     });
     ['strandR1', 'strandR2', 'strandR3'].forEach((id, idx) => {
         setAttr(id, { x1: rStartX, x2: rEndX, y1: coreY + (idx+1)*(coreHeight/4), y2: coreY + (idx+1)*(coreHeight/4) });
     });
 
-    // Dimensions Text & Lines
-    setAttr('lineTop1', { x1: rStartX, x2: rStartX });
-    setAttr('lineTop2', { x1: rEndX, x2: rEndX });
-    setAttr('arrowTop', { x1: rStartX, x2: rEndX });
-    setAttr('txtTopVal', { x: (rStartX + rEndX)/2 });
-    setText('txtTopVal', `${B} mm`);
+    // เส้นบอกขนาดด้านบน เรียงลูกโซ่ ปอกหน้า | ฉนวน | ปอกหลัง
+    const topY = Math.min(wireY - 6, 90);
+    [['lineFront1', X0], ['lineFront2', fEndX], ['lineBack1', rStartX], ['lineBack2', rEndX]]
+        .forEach(([id, x]) => setAttr(id, { x1: x, x2: x, y1: topY, y2: 52 }));
 
-    setAttr('lineBottom1', { x1: baseStartX, x2: baseStartX });
-    setAttr('lineBottom2', { x1: rEndX, x2: rEndX });
-    setAttr('arrowBottom', { x1: baseStartX, x2: rEndX });
-    setAttr('txtBottomVal', { x: (baseStartX + rEndX)/2 });
+    setAttr('arrowFront', { x1: X0, x2: fEndX });
+    setAttr('arrowJacket', { x1: fEndX, x2: rStartX });
+    setAttr('arrowBack', { x1: rStartX, x2: rEndX });
+
+    const mid = (a, b) => (a + b) / 2;
+    [['txtFrontName', mid(X0, fEndX)], ['txtFrontVal', mid(X0, fEndX)],
+     ['txtJacketName', mid(fEndX, rStartX)], ['txtJacketVal', mid(fEndX, rStartX)],
+     ['txtBackName', mid(rStartX, rEndX)], ['txtBackVal', mid(rStartX, rEndX)]
+    ].forEach(([id, x]) => setAttr(id, { x }));
+
+    setText('txtFrontVal', `${F} mm`);
+    setText('txtJacketVal', `${+(L - F - B).toFixed(2)} mm`);
+    setText('txtBackVal', `${B} mm`);
+
+    // ความยาวรวมด้านล่าง
+    const botY = Math.max(wireY + jacketHeight + 6, 210);
+    setAttr('lineBottom1', { x1: X0, x2: X0, y1: botY });
+    setAttr('lineBottom2', { x1: rEndX, x2: rEndX, y1: botY });
+    setAttr('arrowBottom', { x1: X0, x2: rEndX });
+    setAttr('txtBottomVal', { x: mid(X0, rEndX) });
+    setAttr('txtBottomName', { x: mid(X0, rEndX) });
     setText('txtBottomVal', `${L} mm`);
 
     // เส้นบอกขนาดด้านขวา = เส้นผ่านศูนย์กลางตัวนำ (ตรงกับค่าในตาราง AWG)
-    setAttr('lineRight1', { y1: coreY, y2: coreY, x1: rEndX+5, x2: rEndX+35 });
-    setAttr('lineRight2', { y1: coreY+coreHeight, y2: coreY+coreHeight, x1: rEndX+5, x2: rEndX+35 });
-    setAttr('arrowRight', { y1: coreY, y2: coreY+coreHeight, x1: rEndX+30, x2: rEndX+30 });
-    setAttr('txtRightVal', { x: rEndX+42, y: 104 });
-    setText('txtRightVal', `Ø ${awg.dia.toFixed(3)} mm`);
+    setAttr('lineRight1', { y1: coreY, y2: coreY, x1: rEndX+10, x2: rEndX+44 });
+    setAttr('lineRight2', { y1: coreY+coreHeight, y2: coreY+coreHeight, x1: rEndX+10, x2: rEndX+44 });
+    setAttr('arrowRight', { y1: coreY, y2: coreY+coreHeight, x1: rEndX+38, x2: rEndX+38 });
+    setAttr('txtRightVal', { x: rEndX+50, y: CY+4 });
+    setText('txtRightVal', `Ø ${awg.dia.toFixed(3)}`);
 
-    // Blades
-    setAttr('bladeLeftTop', { d: `M ${fEndX-5},5 L ${fEndX+5},5 L ${fEndX+2},${wireY-3} L ${fEndX-2},${wireY-3} Z` });
-    setAttr('bladeLeftBottom', { d: `M ${fEndX-5},215 L ${fEndX+5},215 L ${fEndX+2},${wireY+jacketHeight+3} L ${fEndX-2},${wireY+jacketHeight+3} Z` });
-    setAttr('bladeRightTop', { d: `M ${rStartX-5},5 L ${rStartX+5},5 L ${rStartX+2},${wireY-3} L ${rStartX-2},${wireY-3} Z` });
-    setAttr('bladeRightBottom', { d: `M ${rStartX-5},215 L ${rStartX+5},215 L ${rStartX+2},${wireY+jacketHeight+3} L ${rStartX-2},${wireY+jacketHeight+3} Z` });
+    // หน้าตัดสายไฟ — ย่อ 60% ให้พอดีมุมขวาบน แต่ยังเทียบสัดส่วนข้ามเบอร์ได้
+    setAttr('xsecOuter', { r: (jacketHeight / 2) * 0.6 });
+    setAttr('xsecInner', { r: (coreHeight / 2) * 0.6 });
+    setText('xsecLabel', `${awg.name} AWG`);
+
+    // ใบมีด
+    const jTop = wireY, jBot = wireY + jacketHeight;
+    setAttr('bladeLeftTop', { d: `M ${fEndX-6},8 L ${fEndX+6},8 L ${fEndX+3},${jTop-4} L ${fEndX-3},${jTop-4} Z` });
+    setAttr('bladeLeftBottom', { d: `M ${fEndX-6},292 L ${fEndX+6},292 L ${fEndX+3},${jBot+4} L ${fEndX-3},${jBot+4} Z` });
+    setAttr('bladeRightTop', { d: `M ${rStartX-6},8 L ${rStartX+6},8 L ${rStartX+3},${jTop-4} L ${rStartX-3},${jTop-4} Z` });
+    setAttr('bladeRightBottom', { d: `M ${rStartX-6},292 L ${rStartX+6},292 L ${rStartX+3},${jBot+4} L ${rStartX-3},${jBot+4} Z` });
 }
 
 export function playBladeAnimation() {
@@ -143,7 +172,7 @@ function createSparks() {
         for(let i=0; i<3; i++) {
             const spark = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
             spark.setAttribute('cx', x + (Math.random()*8-4));
-            spark.setAttribute('cy', 100 + (Math.random()*16-8));
+            spark.setAttribute('cy', CY + (Math.random()*16-8));
             spark.setAttribute('r', Math.random()*2+1);
             spark.setAttribute('fill', Math.random()>0.5 ? '#fbbf24' : '#f97316');
             holder.appendChild(spark);
